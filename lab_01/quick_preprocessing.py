@@ -76,7 +76,7 @@ def my_preprocessor(text_line, stop_words, porter_stemmer):
     else:
         processed_text = " ".join(my_porter_stemmer(remove_stop_words(remove_alphanumeric(lower_case(text_line)).split(), stop_words), porter_stemmer))
         if space_only(processed_text):
-            return "Space only line"
+            return ""
         else:
             return processed_text
 
