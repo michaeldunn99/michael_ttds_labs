@@ -6,10 +6,6 @@ import gzip
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
-# Download the necessary NLTK data
-#nltk.download('stopwords')
-#nltk.download('punkt_tab')
-
 def space_only(line):
     pattern = r"^[\s\n]+$"
     return bool(re.match(pattern, line))
@@ -109,7 +105,6 @@ def main():
                 cleaned_file_string += my_preprocessor(line, stop_words, porter_stemmer_function) + "\n"
                 line_count += 1
                 if line_count % 100000==0:
-                    #cleaned_file.write(cleaned_file_string)
                     print(cleaned_file_string, end="")
                     cleaned_file_string = ""
        
