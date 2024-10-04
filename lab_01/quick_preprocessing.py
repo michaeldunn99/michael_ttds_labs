@@ -4,7 +4,7 @@ import re
 import nltk
 import gzip
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
+import Stemmer
 
 def space_only(line):
     pattern = r"^[\s\n]+$"
@@ -81,7 +81,7 @@ def my_preprocessor(text_line, stop_words, porter_stemmer):
 def main():
     if len(sys.argv) < 2:
         sys.exit("Must enter one or more text files to be preprocessed")
-    pattern = r"^[\w]*\.txt.gz$"
+    pattern = r"^.*\.txt\.gz$"
     #
     for file in sys.argv[1:]:
         if not re.search(pattern, file):
@@ -92,9 +92,9 @@ def main():
     stop_words = set(stopwords.words('english'))
 
     #Instantiate an instance from a porterstemmer class
-    porter = PorterStemmer()
+    stemmer = Stemmer.Stemmer('english')
     #Define my porterstemmer function
-    porter_stemmer_function = porter.stem
+    porter_stemmer_function = stemmer.stemWord
 
     for file in file_names:
         cleaned_file_string = ""
