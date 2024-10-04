@@ -104,7 +104,7 @@ def main():
             for line in active_file:
                 cleaned_file_string += my_preprocessor(line, stop_words, porter_stemmer_function) + "\n"
                 line_count += 1
-                if line_count % 100000==0:
+                if line_count % 1000000==0:
                     print(cleaned_file_string, end="")
                     cleaned_file_string = ""
        
