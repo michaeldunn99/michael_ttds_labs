@@ -6,12 +6,12 @@ import gzip
 from nltk.corpus import stopwords
 import Stemmer
 
-stop_words = set(stopwords.words('english'))
+default_stop_words = set(stopwords.words('english'))
 
 #Instantiate an instance from a porterstemmer class
-stemmer = Stemmer.Stemmer('english')
+default_stemmer = Stemmer.Stemmer('english')
 #Define my porterstemmer function
-porter_stemmer_function = stemmer.stemWord
+default_porter_stemmer_function = default_stemmer.stemWord
 
 def space_only(line):
     pattern = r"^[\s\n]+$"
@@ -34,7 +34,7 @@ def remove_alphanumeric(text_input):
     return  re.sub(token_pattern,"", text_input)
 
 
-def remove_stop_words(iterable_of_text_words, iterable_of_stop_words=stop_words):
+def remove_stop_words(iterable_of_text_words, iterable_of_stop_words=default_stop_words):
     """
     Remove stop words from a given iterable of text words.
 
@@ -47,7 +47,7 @@ def remove_stop_words(iterable_of_text_words, iterable_of_stop_words=stop_words)
     """
     return [word for word in iterable_of_text_words if word not in iterable_of_stop_words]
 
-def my_porter_stemmer(iterable_of_text_words, my_porter_stemmer_function=porter_stemmer_function):
+def my_porter_stemmer(iterable_of_text_words, my_porter_stemmer_function=default_porter_stemmer_function):
     """
     Applies a given Porter stemmer function to each word in an iterable of text words.
 
@@ -60,7 +60,7 @@ def my_porter_stemmer(iterable_of_text_words, my_porter_stemmer_function=porter_
     """
     return [my_porter_stemmer_function(word) for word in iterable_of_text_words]
 
-def my_preprocessor(text_line, stop_words, porter_stemmer):
+def my_preprocessor(text_line, stop_words=default_stop_words, porter_stemmer=default_porter_stemmer_function):
     """
     Preprocesses a given text line by applying several text processing steps.
 
@@ -96,17 +96,12 @@ def main():
 
     file_names = sys.argv[1:]
 
-    
-
-   
-
     for file in file_names:
         cleaned_file_string = ""
         line_count = 0
         with gzip.open(file, 'rt') as active_file:
-            previous_line = None
             for line in active_file:
-                cleaned_file_string += my_preprocessor(line, stop_words, porter_stemmer_function) + "\n"
+                cleaned_file_string += my_preprocessor(line) + "\n"
                 line_count += 1
                 if line_count % 1000000==0:
                     print(cleaned_file_string, end="")
