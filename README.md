@@ -4,6 +4,7 @@ This repository contains attempts of the lab exercises for the "Text Technologie
 
 ## Contents
 
+- Lab 00
 - Lab 01
 - Lab 02
 - Lab 03
@@ -20,7 +21,3 @@ To view or run the code for a specific lab, navigate to the corresponding direct
 ## Author
 
 Michael Dunn
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
