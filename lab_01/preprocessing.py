@@ -6,6 +6,13 @@ import gzip
 from nltk.corpus import stopwords
 import Stemmer
 
+stop_words = set(stopwords.words('english'))
+
+#Instantiate an instance from a porterstemmer class
+stemmer = Stemmer.Stemmer('english')
+#Define my porterstemmer function
+porter_stemmer_function = stemmer.stemWord
+
 def space_only(line):
     pattern = r"^[\s\n]+$"
     return bool(re.match(pattern, line))
@@ -27,7 +34,7 @@ def remove_alphanumeric(text_input):
     return  re.sub(token_pattern,"", text_input)
 
 
-def remove_stop_words(iterable_of_text_words, iterable_of_stop_words):
+def remove_stop_words(iterable_of_text_words, iterable_of_stop_words=stop_words):
     """
     Remove stop words from a given iterable of text words.
 
@@ -40,7 +47,7 @@ def remove_stop_words(iterable_of_text_words, iterable_of_stop_words):
     """
     return [word for word in iterable_of_text_words if word not in iterable_of_stop_words]
 
-def my_porter_stemmer(iterable_of_text_words, my_porter_stemmer_function):
+def my_porter_stemmer(iterable_of_text_words, my_porter_stemmer_function=porter_stemmer_function):
     """
     Applies a given Porter stemmer function to each word in an iterable of text words.
 
@@ -89,12 +96,9 @@ def main():
 
     file_names = sys.argv[1:]
 
-    stop_words = set(stopwords.words('english'))
+    
 
-    #Instantiate an instance from a porterstemmer class
-    stemmer = Stemmer.Stemmer('english')
-    #Define my porterstemmer function
-    porter_stemmer_function = stemmer.stemWord
+   
 
     for file in file_names:
         cleaned_file_string = ""
