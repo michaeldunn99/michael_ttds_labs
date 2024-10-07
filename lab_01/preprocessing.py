@@ -1,14 +1,10 @@
-#So we can access the command line arguments
 import sys
 import time
 import re
 import nltk
+import gzip
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-
-# Download the necessary NLTK data
-#nltk.download('stopwords')
-#nltk.download('punkt_tab')
+import Stemmer
 
 def space_only(line):
     pattern = r"^[\s\n]+$"
@@ -76,7 +72,7 @@ def my_preprocessor(text_line, stop_words, porter_stemmer):
     else:
         processed_text = " ".join(my_porter_stemmer(remove_stop_words(remove_alphanumeric(lower_case(text_line)).split(), stop_words), porter_stemmer))
         if space_only(processed_text):
-            return "Space only line"
+            return ""
         else:
             return processed_text
 
@@ -85,7 +81,7 @@ def my_preprocessor(text_line, stop_words, porter_stemmer):
 def main():
     if len(sys.argv) < 2:
         sys.exit("Must enter one or more text files to be preprocessed")
-    pattern = r"^[\w]*\.txt$"
+    pattern = r"^.*\.txt\.gz$"
     #
     for file in sys.argv[1:]:
         if not re.search(pattern, file):
@@ -96,32 +92,24 @@ def main():
     stop_words = set(stopwords.words('english'))
 
     #Instantiate an instance from a porterstemmer class
-    porter = PorterStemmer()
+    stemmer = Stemmer.Stemmer('english')
     #Define my porterstemmer function
-    porter_stemmer_function = porter.stem
+    porter_stemmer_function = stemmer.stemWord
 
     for file in file_names:
-        cleaned_file_name = f"cleaned_{file}"
         cleaned_file_string = ""
         line_count = 0
-        with open(file, "r") as active_file, open(cleaned_file_name, "w") as cleaned_file:
+        with gzip.open(file, 'rt') as active_file:
             previous_line = None
             for line in active_file:
-                #If we have read the last line, print the remaining cleaned_file_string
-                if space_only(line):
-                    cleaned_file_string += ""
-                else: 
-                    if line:=my_preprocessor(line, stop_words, porter_stemmer_function):
-                        line_count += 1
-                        cleaned_file_string += line + "\n"
-                if line_count % 10000==0:
-                    #cleaned_file.write(cleaned_file_string)
+                cleaned_file_string += my_preprocessor(line, stop_words, porter_stemmer_function) + "\n"
+                line_count += 1
+                if line_count % 1000000==0:
                     print(cleaned_file_string, end="")
                     cleaned_file_string = ""
+       
         # Print any remaining lines after the loop ends
         if cleaned_file_string:
-            #with open(cleaned_file_name, "a") as cleaned_file:
-                #cleaned_file.write(cleaned_file_string)
             print(cleaned_file_string, end="")
 
 
