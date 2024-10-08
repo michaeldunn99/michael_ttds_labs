@@ -2,6 +2,7 @@ import sys
 import os
 import xml.etree.ElementTree as ET
 import re
+from collections import defaultdict
 
 """
 This module processes XML files provided as command line arguments. 
@@ -41,21 +42,67 @@ def check_command_line_arguments(command_line_arguments: list, file_type: str):
 def parse_xml(file_path):
     tree = ET.parse(file_path)
     root = tree.getroot()
-    return tree, root
+    return root
+
+
+def preprocess_xml(file_path):
+    """
+    Preprocesses an XML file by parsing it, extracting document elements, and applying a preprocessing function
+    to the text within 'Headline' and 'TEXT' elements.
+    Args:
+        file_path (str): The path to the XML file to be processed.
+    Returns:
+        ElementTree.Element: The root element of the processed XML tree.
+    """
+    my_root = parse_xml(file_path)
+
+    for doc in my_root.findall('DOC'):
+        doc_id = doc.find('DOCNO').text.strip()
+        
+        headline_element = doc.find('Headline')
+        if headline_element is not None:
+            processed_headline = preprocessing.my_preprocessor(headline_element.text.strip())
+            headline_element.text = processed_headline
+        
+        text_element = doc.find('TEXT')
+        if text_element is not None:
+            current_text = text_element.text.strip()
+            processed_text = preprocessing.my_preprocessor(current_text)
+            text_element.text = processed_text
+    return my_root
+
+def generate_inverted_index(root: ET.Element):
+    word_inverted_index = defaultdict(lambda: {"frequency": 0, "document_list": [], "position_dict": defaultdict(lambda:[])})
+    document_inverted_index = defaultdict(dict)
+    for doc in root.findall('DOC'):
+        doc_id = doc.find('DOCNO').text.strip()
+        headline_element = doc.find('Headline')
+        if headline_element is not None:
+            headline_enumerable = enumerate(headline_element.text)
+            headline_length = len(headline_enumerable)
+            for i, word in headline_enumerable:
+                word_inverted_index[word]["frequency"] += 1
+
+                word_inverted_index[word]["document_list"].append(doc_id)
+                word_inverted_index[word]["position_dict"]["doc_id"] = i
+        text_element = doc.find('Text')
+        if text_element is not None:
+            text_enumerable = enumerate(headline_element.text)
+            for i, word in headline_enumerable:
+                word_inverted_index[word]["frequency"] += 1
+
+                word_inverted_index[word]["document_list"].append(doc_id)
+                word_inverted_index[word]["position_dict"]["doc_id"] = i + headline_length
+
+
+
 
 def main():
     check_command_line_arguments(sys.argv, "xml")
-    my_root = parse_xml(sys.argv[1])
 
-    for doc in my_root[1].findall('DOC'):
-        doc_id = doc.find('DOCNO').text.strip()
-        
-        if doc.find('Headline'):
-            processed_headline = preprocessing.my_preprocessor(doc.find('Headline').text.strip())
-            doc.find('Headline').text = processed_headline
-            print(doc.find('Headline').text)
-        current_text = doc.find('TEXT').text
-        processed_text = preprocessing.my_preprocessor(current_text.strip())
-        doc.find('TEXT').text = processed_text
-        print(doc.find('TEXT').text)
-main()
+    #Save the processed xml_tree in memory
+    processed_tree_root = preprocess_xml(sys.argv[1])
+
+#Now we want to loop through each 
+if __name__ == "__main__":
+    main()
