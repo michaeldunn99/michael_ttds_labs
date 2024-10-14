@@ -50,7 +50,7 @@ def parse_xml(file_path):
     return root
 
 
-def preprocess_xml(file_path, remove_stop_words=True, apply_stemming=True):
+def preprocess_xml(file_path, remove_stop_words, apply_stemming):
     """
     Preprocesses an XML file by parsing it, extracting document elements, and applying a preprocessing function
     to the text within 'Headline' and 'TEXT' elements.
@@ -66,18 +66,18 @@ def preprocess_xml(file_path, remove_stop_words=True, apply_stemming=True):
         
         headline_element = doc.find('HEADLINE')
         if headline_element is not None:
-            processed_headline = preprocessing.my_preprocessor(headline_element.text.strip(), remove_stop_words = remove_stop_words,apply_stemming = apply_stemming)
+            processed_headline = preprocessing.my_preprocessor(headline_element.text.strip(), remove_stop_words, apply_stemming)
             headline_element.text = processed_headline
         
         text_element = doc.find('TEXT')
         if text_element is not None:
             current_text = text_element.text.strip()
-            processed_text = preprocessing.my_preprocessor(current_text)
+            processed_text = preprocessing.my_preprocessor(current_text, remove_stop_words, apply_stemming)
             text_element.text = processed_text
     return my_root
 
-def generate_inverted_index(file_path, remove_stop_words = True, apply_stemming = True):
-    root = preprocess_xml(file_path, remove_stop_words=remove_stop_words, apply_stemming=apply_stemming)
+def generate_inverted_index(file_path, remove_stop_words, apply_stemming):
+    root = preprocess_xml(file_path, remove_stop_words, apply_stemming)
     word_inverted_index = defaultdict(lambda: {"frequency": 0, "document_set": set(), "position_dict": defaultdict(lambda:set())})
     for doc in root.findall('DOC'):
         headline_length = 0
@@ -91,7 +91,7 @@ def generate_inverted_index(file_path, remove_stop_words = True, apply_stemming 
             for i, word in headline_list:
                 word_inverted_index[word]["frequency"] += 1
                 word_inverted_index[word]["document_set"].add(doc_id)
-                word_inverted_index[word]["position_dict"][doc_id].append(i)
+                word_inverted_index[word]["position_dict"][doc_id].add(i)
                 word_inverted_index["_total_document_set"]["document_set"].add(doc_id)
         text_element = doc.find('TEXT')
         if text_element is not None:
@@ -99,7 +99,7 @@ def generate_inverted_index(file_path, remove_stop_words = True, apply_stemming 
             for i, word in text_enumerable:
                 word_inverted_index[word]["frequency"] += 1
                 word_inverted_index[word]["document_set"].add(doc_id)
-                word_inverted_index[word]["position_dict"][doc_id].append(i + headline_length)
+                word_inverted_index[word]["position_dict"][doc_id].add(i + headline_length)
                 word_inverted_index["_total_document_set"]["document_set"].add(doc_id)
     return word_inverted_index
 
@@ -119,7 +119,7 @@ def main():
     #Save the processed xml_tree in memory
     #processed_tree_root = preprocess_xml()
 
-    remove_stop_words = input("Do you want to remove stop words? (Y/N)")
+    remove_stop_words = input("Do you want to remove stop words? (Y/N): ")
     if remove_stop_words == "Y":
         remove_stop_words = True
     elif remove_stop_words == "N":
@@ -127,7 +127,7 @@ def main():
     else:
         sys.exit(-1)
     
-    apply_stemming = input("Do you want to apply_stemming? (Y/N)")
+    apply_stemming = input("Do you want to apply_stemming? (Y/N): ")
     if apply_stemming == "Y":
         apply_stemming = True
     elif apply_stemming == "N":
@@ -136,7 +136,7 @@ def main():
         sys.exit(-1)
 
     #Generate a word index
-    word_index = generate_inverted_index(sys.argv[1], remove_stop_words=remove_stop_words, apply_stemming=apply_stemming)
+    word_index = generate_inverted_index(sys.argv[1], remove_stop_words, apply_stemming)
 
     #Output result to text file
     input_file_name = sys.argv[1]

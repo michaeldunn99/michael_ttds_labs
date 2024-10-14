@@ -1,6 +1,6 @@
 import inverted_index
 import sys
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 #Making this object oriented would be better (classes and methods)
 
@@ -46,47 +46,90 @@ def or_operator(word_1, word_2, word_present):
         print("False")
         return False, set()
 
-def phrase_search(word_list, word_present):
+def phrase_search(word_present):
+    word_list = input("Which phrase would you like to search?: ")
+    word_list = word_list.strip().split()
     #First loop through the word list to check each of our words are actually there
     #before we start to check if they are there consecutively (as a phrase)
     word_dicts = []
     for word in word_list:
         word_present_boolean, word_dict = word_present(word)
         if not word_present_boolean:
+            print("No such phrase!")
             return False
         else:
             word_dicts.append(word_dict)
-    matching_documents = set()
     document_set = word_dicts[0]["document_set"]
 
     #We are going to maintain our first word position dict for finding phrases
-    potential_matching_position_dict = word_dicts[0]["position_dict"]
-   
+    #potential_matching_position_dict = word_dicts[0]["position_dict"]
     current_word_position = 0
-    for i in range(len(word_dicts)-1):
+    potential_positions_dict = defaultdict(list)
+    for i in range(len(word_list)-1):
+        docs_with_no_matches = [0 for _ in range(i+1)]
+        docs_to_remove = [set() for j in range(i+1)]
         next_word_dict = word_dicts[i+1]
         current_word_dict = word_dicts[i]
-        matching_documents = matching_documents & next_word_dict["document_set"]
+        document_set = document_set & next_word_dict["document_set"]
+        potential_positions_dict[i] = {document:word_dicts[i]["position_dict"][document].copy() for document in document_set}
         #re-write potential matching dictionary to only have keys of documents in our document set
-        potential_matching_position_dict = {document:potential_matching_position_dict[document] for document in document_set}
+        
             #Loop through each of the documents have all the currently searched words
         for match_doc in document_set:
-            #For each of the positions that the current word exists in the current doc
+            #For each of the positions that the current word exists in the current docs
+            positions_to_remove = set()
             for position in current_word_dict["position_dict"][match_doc]:
 
                 #Check if the the next_word_dict has a position that is one after (i.e. the words are consecutive)
                 if (position+1) not in next_word_dict["position_dict"][match_doc]:
+                    #All we can say is that 
                     #Remove the position of the first word in the potential matching dict
-                    potential_matching_position_dict[match_doc].remove(position - current_word_position)
-        current_word_position += 1
-
-
-
+                    for j in range(1, i+1):
+                        if ((position - i + j) in potential_positions_dict[j-1][match_doc]):
+                            potential_positions_dict[j][match_doc].remove(position - i + j)
+            for j in range(1, i+1):
+                if len(potential_positions_dict[i-j][match_doc]) == 0:
+                    docs_to_remove[j].add(match_doc)
+                    docs_with_no_matches[j] += 1
+        
+        for j in range(1, i+1):
+            if docs_with_no_matches[i-j] == len(potential_positions_dict[i-j].keys()):
+                print("No such phrase!")
+                return False
+        
+            for doc in docs_to_remove[i-j]:
+                if j == i-1:
+                    document_set.remove(doc)
+                del potential_positions_dict[j][doc]
+                if not potential_positions_dict[i-j]:
+                    del potential_positions_dict[i-j]
+        
+    
+    sorted_docs_first_position = sorted(potential_positions_dict[0].keys())
+        
+    for match_doc in sorted_docs_first_position:
+        print(f"Match in document {match_doc} at postion(s): {sorted(list(potential_positions_dict[0][match_doc]))}")
+    return True
 
 def main():
-    my_inverted_index = inverted_index.generate_inverted_index(sys.argv[1])
-    my_word_present = word_present_function(my_inverted_index)
-    phrase_search()
+    remove_stop_words = input("Do you want to remove stop words? (Y/N): ")
+    if remove_stop_words == "Y":
+        remove_stop_words = True
+    elif remove_stop_words == "N":
+        remove_stop_words = False
+    else:
+        sys.exit(-1)
+    
+    apply_stemming = input("Do you want to apply_stemming? (Y/N): ")
+    if apply_stemming == "Y":
+        apply_stemming = True
+    elif apply_stemming == "N":
+        apply_stemming = False
+    else:
+        sys.exit(-1)
+    my_inverted_index = inverted_index.generate_inverted_index(sys.argv[1], remove_stop_words, apply_stemming)
+    my_word_present_function = word_present_function(my_inverted_index)
+    phrase_search(my_word_present_function)
 
 if __name__ == "__main__":
     main()
