@@ -60,7 +60,7 @@ def my_porter_stemmer(iterable_of_text_words, my_porter_stemmer_function=default
     """
     return [my_porter_stemmer_function(word) for word in iterable_of_text_words]
 
-def my_preprocessor(text_line, stop_words=default_stop_words, porter_stemmer=default_porter_stemmer_function):
+def my_preprocessor(text_line, remove_stop_words = True, stop_words=default_stop_words, apply_stemming = True,porter_stemmer=default_porter_stemmer_function):
     """
     Preprocesses a given text line by applying several text processing steps.
 
@@ -76,12 +76,21 @@ def my_preprocessor(text_line, stop_words=default_stop_words, porter_stemmer=def
 
     if space_only(text_line):
         return ""
-    else:
-        processed_text = " ".join(my_porter_stemmer(remove_stop_words(remove_alphanumeric(lower_case(text_line)).split(), stop_words), porter_stemmer))
-        if space_only(processed_text):
-            return ""
-        else:
-            return processed_text
+    
+    processed_text = remove_alphanumeric(lower_case(text_line)).split()
+
+    if remove_stop_words:
+        processed_text = remove_stop_words(processed_text, stop_words)
+    
+    if space_only(processed_text):
+        return ""
+    
+    if apply_stemming:
+        processed_text = my_porter_stemmer(processed_text, porter_stemmer)
+    
+    processed_text = " ".join(processed_text)
+ 
+    return processed_text
 
 
 
