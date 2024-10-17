@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    
 
 
 
@@ -16,7 +17,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "data/lab_02/collections/trec.sample.xml"
+                "data/lab_02/collections/sample.xml"
             ]
         }
     ]

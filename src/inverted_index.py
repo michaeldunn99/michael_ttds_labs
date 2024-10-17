@@ -106,12 +106,13 @@ def generate_inverted_index(file_path, remove_stop_words, apply_stemming):
 def write_index_to_file(inverted_index, file_path):
     with open(file_path, 'w') as output_file:
         for word in inverted_index:
-            output_file.write(f"{word}:\n")
-            output_file.write(f"\tFrequency: {inverted_index[word]['frequency']}\n")
-            for doc_id in inverted_index[word]["position_dict"]:
-                if word != "_total_document_set":
-                    output_file.write(f"\tDoc_ID: {doc_id} Position(s): {inverted_index[word]['position_dict'][doc_id]}\n")
-            output_file.write("\n")
+            if word != "_total_document_set":
+                output_file.write(f"{word}:\n")
+                output_file.write(f"\tFrequency: {inverted_index[word]['frequency']}\n")
+                for doc_id in inverted_index[word]["position_dict"]:
+                    if word != "_total_document_set":
+                        output_file.write(f"\tDoc_ID: {doc_id} Position(s): {inverted_index[word]['position_dict'][doc_id]}\n")
+                output_file.write("\n")
 
 def main():
     check_command_line_arguments(sys.argv, "xml")
@@ -143,7 +144,7 @@ def main():
     pattern = r'([^/]+)\.xml$'
     match = re.search(pattern, input_file_name)
     if match:
-        output_file_name = match.group(1) + ".txt"
+        output_file_name = "output/" + match.group(1) + ".txt"
     else:
         sys.exit("Invalid input file format. Expected a .xml file.")
     print(output_file_name)

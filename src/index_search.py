@@ -1,10 +1,12 @@
 import inverted_index
 import sys
 import os
+import numpy as np
+from proximity import proximity
 
 # Add the lab_01 directory to the system path
-lab_01_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'lab_01'))
-sys.path.append(lab_01_path)
+#lab_01_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'lab_01'))
+#sys.path.append(lab_01_path)
 
 #import preprecessing module from lab_02
 import preprocessing
@@ -53,6 +55,7 @@ def or_operator(word_1, word_2, word_present):
     else:
         print("False")
         return False, set()
+    
 
 def phrase_search(inverted_index, text_input_string, apply_stemming):
     word_present = word_present_function(inverted_index)
@@ -119,14 +122,19 @@ def phrase_search(inverted_index, text_input_string, apply_stemming):
     return True, sorted_docs_first_positions_dict
 
 def proximity_search(inverted_index, tuple_of_two_phrases, apply_stemming):
-    list_of_phrase_present_tuples = []
+    list_of_position_dicts = []
     for phrase in tuple_of_two_phrases:
-        phrase_present_tuple = phrase_search(inverted_index, phrase, apply_stemming)
-        if phrase_present_tuple[0] == False:
-            return False, {}
+        #Phrase search will tell us whether that phrase file in the document
+        #It also returns a dictionary of all the documents and positions of those documents
+        phrase_present, dict_of_phrase_locations = phrase_search(inverted_index, phrase, apply_stemming)
+        if phrase_present == False:
+            return False
         else:
-            list_of_phrase_present_tuples.append(phrase_present_tuple)
+            list_of_position_dicts.append(dict_of_phrase_locations)
+
     
+    phrase_1_position_dict = list_of_position_dicts[0]
+    phrase_2_position_dict = list_of_position_dicts[1]
     #Now we have a list of length two, each consisting of a tuple (True, phrase_position_dict)
     #where phrase_position_dict is a dictionary with document numbers as keys and positions of that phrase
     #in the document as values
@@ -134,12 +142,29 @@ def proximity_search(inverted_index, tuple_of_two_phrases, apply_stemming):
     #Now we need to check, for the documents (keys) that overlap, how close the phrases are (i.e. minimal distance between positions)
 
     #Docs that both phrases are in are the overlapping set of keys
-    common_docs = set(list_of_phrase_present_tuples[0][1].keys()) & set(list_of_phrase_present_tuples[1][1].keys())
+    #Make a set that contains the documents that both phrases are in 
+    common_docs = set(phrase_1_position_dict.keys()) & set(phrase_2_position_dict.keys())
 
+    #Go through the documents both phrases are in and calculate the closest distance between those phrases in that document
+    proximity_list = []
     for doc in common_docs:
         #work out the minimum distance between positions (i.e. minimum distance between two elements in different lists
         #where both lists are sorted - think best to merge the lists then pick the minimum consecutive distance
-        pass                                                             
+        #Find proximity is a function that takes two ordered lists and finds the minimum distance between two items
+        #in that list that are from different lists
+        proximity_list.append((doc, proximity(phrase_1_position_dict[doc], phrase_2_position_dict[doc])))                                                             
+    min_list = []
+    min = np.infty
+    min_list = []
+    for doc in proximity_list:
+        if doc[1][0] < min:
+            min = doc[1][0]
+            min_list = [doc]
+        elif doc[1][0] == min:
+            min_list.append(doc)
+    
+    return proximity_list, min_list
+
     
 
 
@@ -153,9 +178,19 @@ def main():
         apply_stemming = False
     else:
         sys.exit(-1)
+
+    phrase_to_search = input("What phrase would you like to search? ")
+
     my_inverted_index = inverted_index.generate_inverted_index(sys.argv[1], remove_stop_words, apply_stemming)
-    my_word_present_function = word_present_function(my_inverted_index)
-    phrase_search(my_word_present_function, apply_stemming)
+    #my_word_present_function = word_present_function(my_inverted_index)
+    phrase_search(my_inverted_index, phrase_to_search, apply_stemming)
+
+    phrase_1 = "cancellations"
+    phrase_2 = "Kloster"
+    prox_result = proximity_search(my_inverted_index, (phrase_1,phrase_2), apply_stemming=False)
+    print("Min list for each doc:", prox_result[0])
+    print()
+    print("Min list across all docs:", prox_result[1])
 
 if __name__ == "__main__":
     main()
