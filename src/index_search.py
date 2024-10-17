@@ -188,9 +188,10 @@ def main():
     phrase_1 = "cancellations"
     phrase_2 = "Kloster"
     prox_result = proximity_search(my_inverted_index, (phrase_1,phrase_2), apply_stemming=False)
-    print("Min list for each doc:", prox_result[0])
-    print()
-    print("Min list across all docs:", prox_result[1])
+    if prox_result:
+        print("Min list for each doc:", prox_result[0])
+        print()
+        print("Min list across all docs:", prox_result[1])
 
 if __name__ == "__main__":
     main()
