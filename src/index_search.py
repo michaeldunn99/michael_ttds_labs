@@ -139,7 +139,7 @@ def proximity_search(inverted_index, tuple_of_two_phrases, apply_stemming):
     for doc in common_docs:
         #work out the minimum distance between positions (i.e. minimum distance between two elements in different lists
         #where both lists are sorted - think best to merge the lists then pick the minimum consecutive distance
-                                                                         
+        pass                                                             
     
 
 
